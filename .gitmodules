@@ -1,0 +1,3 @@
+[submodule ".data/Data-WikipediaComments"]
+	path = .data/Data-WikipediaComments
+	url = https://github.com/mlingithub/Data-WikipediaComments
