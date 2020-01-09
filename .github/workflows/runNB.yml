@@ -1,0 +1,43 @@
+name: runNB
+
+on: 
+  push:
+    paths: 
+      - "**.ipynb"
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: configuring notebook
+      uses: appleboy/ssh-action@master
+      with:
+        host: mlgithub.westus2.cloudapp.azure.com
+        username: ${{ secrets.Azure_user }}
+        password: ${{ secrets.Azure_password }}
+        port: 22
+        envs: GITHUB_REPOSITORY,GITHUB_REF
+        script: |
+                branch=${GITHUB_REF##*/}
+                repo_folder=${GITHUB_REPOSITORY##*/}
+                repo_folder=${GITHUB_REPOSITORY##*/}
+                echo $repo_folder
+                branch=${GITHUB_REF##*/}
+                cd Desktop
+                if [ ! -d $repo_folder ] ; then
+                    git clone https://github.com/$GITHUB_REPOSITORY.git >/dev/null 2>/dev/null
+                    cd $repo_folder
+                    git checkout $branch >/dev/null 2>/dev/null
+                    git submodule update --init --recursive >/dev/null 2>/dev/null
+                    git lfs pull >/dev/null 2>/dev/null
+                else
+                    cd $repo_folder
+                    git checkout $branch >/dev/null 2>/dev/null
+                    git pull --all >/dev/null 2>/dev/null
+                    git submodule update --init --recursive >/dev/null 2>/dev/null
+                    git lfs pull >/dev/null 2>/dev/null
+                fi
+                git checkout $branch 2>/dev/null
+                /data/anaconda/envs/py35/bin/python3 .github/copyTemplate.py $repo_folder $branch

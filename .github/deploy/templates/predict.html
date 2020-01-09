@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Toxic Comment Classifier</title>
+    <meta name="description" content="Toxic Comment Classifier">
+</head>
+<body>
+    <p>
+        Toxic Comment Classifier
+    </p>
+ 
+    <form action="" method="post">
+        <p>
+            <label for="textInput">Enter text:</label>
+        </p>
+        <p></p>
+        <textarea rows="8" cols="50" name="textInput"></textarea>
+        </p>
+        {% if message %}
+            <p><font color={{ color }}>{{ message }}</font></p>
+        {% endif %}
+        <p>
+            <input type="submit">
+        </p>
+    </form>
+ 
+</body>
+</html>

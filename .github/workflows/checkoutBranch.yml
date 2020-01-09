@@ -1,0 +1,41 @@
+name: checkout branch
+
+on: 
+  push:
+    paths: 
+      - ".0setbranch.txt"
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+        
+    - name: switching branches
+      uses: appleboy/ssh-action@master
+      env:
+        branch: $(<.0setbranch.txt)
+      with:
+        host: mlgithub.westus2.cloudapp.azure.com
+        username: ${{ secrets.Azure_user }}
+        password: ${{ secrets.Azure_password }}
+        port: 22
+        envs: GITHUB_REF, GITHUB_REPOSITORY
+        script: |
+                branch=${GITHUB_REF##*/}
+                repo_folder=${GITHUB_REPOSITORY##*/}
+                cd Desktop
+                if [ ! -d $repo_folder ] ; then
+                    git clone https://github.com/$GITHUB_REPOSITORY.git 2>/dev/null
+                    cd $repo_folder
+                    git submodule update --init --recursive 2>/dev/null
+                    git lfs pull 2>/dev/null
+                else
+                    cd $repo_folder
+                    git pull --all 2>/dev/null
+                    git submodule update --init --recursive 2>/dev/null
+                    git lfs pull 2>/dev/null
+                fi
+                git checkout $branch 2>/dev/null
+                git rev-parse --abbrev-ref HEAD 2>/dev/null

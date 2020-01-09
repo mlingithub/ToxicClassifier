@@ -1,0 +1,58 @@
+name: runPython
+
+on: 
+  push:
+    paths: 
+      - "main.py"
+      - '!.github/**.py'
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Running python script
+      uses: appleboy/ssh-action@master
+      with:
+        host: mlgithub.westus2.cloudapp.azure.com
+        username: ${{ secrets.Azure_user }}
+        password: ${{ secrets.Azure_password }}
+        port: 22
+        command_timeout: "360m"
+        envs: 
+            GITHUB_REPOSITORY, GITHUB_REF, GITHUB_SHA, GITHUB_ACTOR
+        script: |
+                repo_folder=${GITHUB_REPOSITORY##*/}
+                branch=${GITHUB_REF##*/}
+                cd Desktop
+                wiki_folder="${GITHUB_REPOSITORY##*/}.wiki"
+                if [ ! -d $wiki_folder ] ; then
+                    git clone https://github.com/"$GITHUB_REPOSITORY.wiki".git 2>/dev/null
+                    cd $wiki_folder
+                    git checkout master 2>/dev/null
+                else
+                    cd $wiki_folder
+                    git checkout master >/dev/null 2>/dev/null
+                    git pull --all >/dev/null 2>/dev/null
+                fi
+                cd ..
+                if [ ! -d $repo_folder ] ; then
+                    git clone https://github.com/$GITHUB_REPOSITORY.git >/dev/null 2>/dev/null
+                    cd $repo_folder
+                    git checkout $branch >/dev/null 2>/dev/null
+                    git submodule update --init --recursive >/dev/null 2>/dev/null
+                    git lfs pull >/dev/null 2>/dev/null
+                else
+                    cd $repo_folder
+                    git checkout $branch >/dev/null 2>/dev/null
+                    git pull --all >/dev/null 2>/dev/null
+                    git submodule update --init --recursive >/dev/null 2>/dev/null
+                    git lfs pull >/dev/null 2>/dev/null
+                fi
+                /data/anaconda/envs/py36/bin/python3 main.py
+                git add . >/dev/null 2>/dev/null
+                message=$(git log --oneline --pretty=format:%s --max-count=1 -- main.py)
+                git commit -m "$message" >/dev/null 2>/dev/null
+                git push --force https://github.com/$GITHUB_REPOSITORY.git $branch >/dev/null 2>/dev/null
+                /data/anaconda/envs/py35/bin/python3 .github/experiment.py $GITHUB_SHA $branch $wiki_folder

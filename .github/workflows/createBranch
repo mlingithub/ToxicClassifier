@@ -1,0 +1,27 @@
+name: createBranch
+on: 
+  push:
+    branches: 
+      - "test"
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: removing artifacts
+      run: |
+        repo_folder=${GITHUB_REPOSITORY##*/}
+        branch=${GITHUB_REF##*/}
+        echo $branch
+        git config --global user.email "ahdbilal@microsoft.com" 2>/dev/null
+        git config --global user.name "Ahmed Bilal" 2>/dev/null
+        git checkout $branch 2>/dev/null
+        cd .artifacts
+        ls
+        find . -type f ! -name 'readme.md' -delete
+        git add . 2>/dev/null
+        git commit -m "branch ready" 2>/dev/null
+        git push https://ahdbilal:${{ secrets.GITHUB_TOKEN }}@github.com/$GITHUB_REPOSITORY.git $branch 2>/dev/null

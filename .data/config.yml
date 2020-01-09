@@ -1,0 +1,8 @@
+- name:
+  source:
+    server:
+    url:
+    user:
+    pwd:
+    files_to_download:
+    download: "no"

@@ -1,0 +1,57 @@
+name: connectData
+
+on: 
+    push:
+        paths: 
+            - ".data/**"
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: reading config file
+      uses: actions/setup-python@v1.1.1
+    - run: |
+        pip install pyyaml
+        python .github/yamltest.py
+    - name: connecting to data
+      run: |
+        repo_folder=${GITHUB_REPOSITORY##*/}
+        git config --global user.email "ahdbilal@microsoft.com" 2>/dev/null
+        git config --global user.name "Ahmed Bilal" 2>/dev/null
+        if [ ! -d $repo_folder ] ; then
+            git checkout master 2>/dev/null
+            git add . 2>/dev/null
+            git commit -m "action commit" 2>/dev/null
+            git push https://ahdbilal:${{ secrets.GITHUB_TOKEN }}@github.com/$GITHUB_REPOSITORY.git 2>/dev/null
+        fi
+  
+    - name: Syncing repository
+      uses: appleboy/ssh-action@master
+      with:
+        host: mlgithub.westus2.cloudapp.azure.com
+        username: ${{ secrets.Azure_user }}
+        password: ${{ secrets.Azure_password }}
+        port: 22
+        envs: 
+            GITHUB_REPOSITORY
+        script: |
+                repo_folder=${GITHUB_REPOSITORY##*/}
+                cd Desktop
+                if [ ! -d $repo_folder ] ; then
+                    git clone https://github.com/$GITHUB_REPOSITORY.git 2>/dev/null
+                    cd $repo_folder
+                    git submodule update --init --recursive 2>/dev/null
+                    git lfs pull 2>/dev/null
+                else
+                    cd $repo_folder
+                    git pull --all 2>/dev/null
+                    git submodule update --init --recursive 2>/dev/null
+                    git lfs pull 2>/dev/null
+                fi
+
+
+          
