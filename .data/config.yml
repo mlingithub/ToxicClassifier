@@ -1,7 +1,7 @@
-- name:
+- name: WikiComments
   source:
-    server:
-    url:
+    server: GitHub
+    url: https://github.com/mlingithub/Data-WikipediaComments
     user:
     pwd:
     files_to_download:
